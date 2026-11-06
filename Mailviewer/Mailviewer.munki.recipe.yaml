@@ -1,0 +1,49 @@
+Description: |
+  Downloads the current Mailviewer for Mac installer package (see the
+  download recipe for the SHA-256 and signature checks) and imports it into
+  Munki. Mailviewer has no process that must quit before an update, so
+  blocking_applications is empty and the install is unattended. Uninstalling
+  runs the uninstaller the package installs outside the app,
+  /Library/Application Support/Machinery Software/Mailviewer/uninstall.sh,
+  which removes the app, its receipt and every user's containers; see the
+  vendor's admin guide, https://updates.mailviewer.app/admin/.
+Identifier: com.github.machinery-software.munki.Mailviewer
+ParentRecipe: com.github.machinery-software.download.Mailviewer
+MinimumVersion: "2.3"
+
+Input:
+  NAME: Mailviewer
+  MUNKI_REPO_SUBDIR: apps/%NAME%
+  pkginfo:
+    blocking_applications: []
+    catalogs:
+      - testing
+    category: Productivity
+    description: >-
+      Quick Look preview and double-click opening for Outlook .msg files and
+      the other mail files it claims (.oft, .eml, .emlx, .mht, mbox files and
+      Apple Mail's exported mailboxes), as a signed, notarized Mac app.
+    developer: Machinery Software LLC
+    display_name: Mailviewer
+    minimum_os_version: "13.0"
+    name: "%NAME%"
+    unattended_install: true
+    unattended_uninstall: true
+    uninstall_method: uninstall_script
+    uninstall_script: |
+      #!/bin/bash
+      # Uninstall Mailviewer. Munki runs this as root.
+      UNINSTALL="/Library/Application Support/Machinery Software/Mailviewer/uninstall.sh"
+      if [ -x "$UNINSTALL" ]; then
+        /bin/bash "$UNINSTALL"
+        exit $?
+      fi
+      echo "No Mailviewer uninstaller on this Mac (never installed, or already uninstalled)."
+      exit 0
+    uninstallable: true
+
+Process:
+  - Processor: MunkiImporter
+    Arguments:
+      pkg_path: "%pathname%"
+      repo_subdirectory: "%MUNKI_REPO_SUBDIR%"

@@ -1,0 +1,18 @@
+Description: |
+  Downloads the current Mailviewer for Mac installer package (see the
+  download recipe for the SHA-256 and signature checks) and copies it to the
+  recipe cache as Mailviewer-<version>.pkg. The vendor's package is already a
+  signed, notarized product package that installs /Applications/Mailviewer.app,
+  so nothing is repackaged.
+Identifier: com.github.machinery-software.pkg.Mailviewer
+ParentRecipe: com.github.machinery-software.download.Mailviewer
+MinimumVersion: "2.3"
+
+Input:
+  NAME: Mailviewer
+
+Process:
+  - Processor: PkgCopier
+    Arguments:
+      source_pkg: "%pathname%"
+      pkg_path: "%RECIPE_CACHE_DIR%/%NAME%-%version%.pkg"

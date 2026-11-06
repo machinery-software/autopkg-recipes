@@ -1,0 +1,27 @@
+Description: |
+  Downloads the current Mailviewer for Mac installer package (see the
+  download recipe for the SHA-256 and signature checks) and uploads it to
+  Jamf Pro with the JamfUploader processors: the category is created if
+  missing and the package is uploaded as Mailviewer-<version>.pkg. No policy
+  is created; add a JamfPolicyUploader step in an override or a child recipe.
+  Requires the grahampugh/jamf-upload repo (autopkg repo-add
+  grahampugh/jamf-upload) and the JSS_URL and API credentials in the AutoPkg
+  preferences.
+Identifier: com.github.machinery-software.jamf.Mailviewer
+ParentRecipe: com.github.machinery-software.pkg.Mailviewer
+MinimumVersion: "2.3"
+
+Input:
+  NAME: Mailviewer
+  CATEGORY: Productivity
+
+Process:
+  - Processor: com.github.grahampugh.jamf-upload.processors/JamfCategoryUploader
+    SharedProcessorRepoURL: https://github.com/grahampugh/jamf-upload
+    Arguments:
+      category_name: "%CATEGORY%"
+
+  - Processor: com.github.grahampugh.jamf-upload.processors/JamfPackageUploader
+    SharedProcessorRepoURL: https://github.com/grahampugh/jamf-upload
+    Arguments:
+      pkg_category: "%CATEGORY%"

@@ -1,0 +1,42 @@
+Description: |
+  Downloads the current Mailviewer for Mac installer package. The version,
+  download URL and SHA-256 are read from the vendor's manifest,
+  https://updates.mailviewer.app/latest.json. The downloaded package must
+  match the manifest's SHA-256 and be signed by
+  "Developer ID Installer: Machinery Software LLC (D7PHX968FZ)"; the recipe
+  fails otherwise. Both checks run in the check phase, so "autopkg run -c"
+  verifies the download too.
+Identifier: com.github.machinery-software.download.Mailviewer
+MinimumVersion: "2.3"
+
+Input:
+  NAME: Mailviewer
+
+Process:
+  - Processor: URLTextSearcher
+    Arguments:
+      url: https://updates.mailviewer.app/latest.json
+      re_pattern: '"version":\s*"(?P<version>[0-9]+(?:\.[0-9]+)+)".*?"pkgVersion":\s*"(?P<pkg_version>[0-9]+(?:\.[0-9]+)+)".*?"url":\s*"(?P<url>https://updates\.mailviewer\.app/[A-Za-z0-9._-]+\.pkg)".*?"sha256":\s*"(?P<sha256>[0-9a-f]{64})"'
+      re_flags:
+        - DOTALL
+      result_output_var_name: version
+
+  - Processor: URLDownloader
+    Arguments:
+      url: "%url%"
+      filename: "%NAME%-%version%.pkg"
+
+  - Processor: FileSHA256Verifier
+    Arguments:
+      input_path: "%pathname%"
+      expected_sha256: "%sha256%"
+
+  - Processor: CodeSignatureVerifier
+    Arguments:
+      input_path: "%pathname%"
+      expected_authority_names:
+        - "Developer ID Installer: Machinery Software LLC (D7PHX968FZ)"
+        - Developer ID Certification Authority
+        - Apple Root CA
+
+  - Processor: EndOfCheckPhase
